@@ -26,7 +26,12 @@ const sections: LegalSection[] = [
   },
   {
     title: "Scope of this policy",
-    body: "This Privacy Policy applies to ARS Group’s online activities and is valid for visitors to this website in relation to information they share with or that is collected by ARS Group. It does not apply to information collected offline or through channels other than this website.",
+    body: [
+      "This Privacy Policy applies to information shared with ARS Group through our website, advertisements, social media platforms, online enquiry forms and other digital communication channels.",
+      "When you submit an enquiry, we may collect information such as your name, phone number, email address, company name, project location, customer category, product or service requirements, and expected purchase timeline.",
+      "We use this information to understand your requirements, respond to your enquiry, provide relevant product or service information, and prepare quotations.",
+      "For questions about this policy or the information you have shared with ARS, please contact us through our official contact channels.",
+    ],
   },
 ];
 

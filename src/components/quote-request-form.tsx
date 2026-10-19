@@ -13,7 +13,13 @@ export type QuoteRequestPrefill = {
   productType?: string;
   requirement?: string;
 };
-type QuoteRequestFormProps = { title: string; body: string; prefill?: QuoteRequestPrefill };
+type QuoteRequestFormProps = {
+  title: string;
+  body: string;
+  prefill?: QuoteRequestPrefill;
+  idPrefix?: string;
+  presentation?: "card" | "plain";
+};
 type FormStatus = { tone: "idle" | "success" | "error"; message: string };
 
 const states = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh"];
@@ -26,7 +32,13 @@ function RequiredLabel({ children }: { children: string }) {
   return <span>{children}<span className="text-brand-red" aria-hidden="true"> *</span><span className="sr-only"> required</span></span>;
 }
 
-export function QuoteRequestForm({ title, body, prefill }: QuoteRequestFormProps) {
+export function QuoteRequestForm({
+  title,
+  body,
+  prefill,
+  idPrefix = "quote",
+  presentation = "card",
+}: QuoteRequestFormProps) {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<FormStatus>({ tone: "idle", message: "" });
@@ -129,39 +141,40 @@ export function QuoteRequestForm({ title, body, prefill }: QuoteRequestFormProps
     }
   }
 
-  const describedBy = (field: string) => errors[field] ? `quote-${field}-error` : undefined;
-  const errorMessage = (field: string) => errors[field] && <span id={`quote-${field}-error`} className="text-sm font-normal text-brand-red">{errors[field]}</span>;
+  const fieldId = (field: string) => `${idPrefix}-${field}`;
+  const describedBy = (field: string) => errors[field] ? `${fieldId(field)}-error` : undefined;
+  const errorMessage = (field: string) => errors[field] && <span id={`${fieldId(field)}-error`} className="text-sm font-normal text-brand-red">{errors[field]}</span>;
 
   return (
-    <div className="min-w-0 rounded-[8px] border border-ink-900/10 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:p-6 md:p-8">
-      <div className="mb-8">
+    <div className={presentation === "card" ? "min-w-0 rounded-[8px] border border-ink-900/10 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:p-6 md:p-8" : "min-w-0"}>
+      {presentation === "card" ? <div className="mb-8">
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand-blue">Quote request</p>
         <h2 className="mt-4 font-display text-[clamp(2rem,3.4vw,2.25rem)] font-bold leading-[1.04] tracking-normal text-ink-900">{title}</h2>
         <p className="mt-4 text-base leading-7 text-steel-700">{body}</p>
-      </div>
+      </div> : null}
 
       <form className="grid min-w-0 gap-5" data-lead-form onSubmit={handleSubmit} noValidate aria-busy={isSubmitting}>
         <input type="hidden" name="sourcePage" value="/request-quote" />
-        <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true"><label htmlFor="quote-website">Website</label><input id="quote-website" name="website" tabIndex={-1} autoComplete="off" /></div>
+        <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true"><label htmlFor={fieldId("website")}>Website</label><input id={fieldId("website")} name="website" tabIndex={-1} autoComplete="off" /></div>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <label className={labelClass} htmlFor="quote-fullName"><RequiredLabel>Full Name</RequiredLabel><input id="quote-fullName" name="fullName" autoComplete="name" required maxLength={100} className={`${controlClass} ${errors.fullName ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.fullName)} aria-describedby={describedBy("fullName")} onChange={() => clearFieldError("fullName")} />{errorMessage("fullName")}</label>
-          <label className={labelClass} htmlFor="quote-phone"><RequiredLabel>Phone</RequiredLabel><input id="quote-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="+91 98765 43210" className={`${controlClass} ${errors.phone ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.phone)} aria-describedby={describedBy("phone")} onChange={() => clearFieldError("phone")} />{errorMessage("phone")}</label>
+          <label className={labelClass} htmlFor={fieldId("fullName")}><RequiredLabel>Full Name</RequiredLabel><input id={fieldId("fullName")} name="fullName" autoComplete="name" required maxLength={100} className={`${controlClass} ${errors.fullName ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.fullName)} aria-describedby={describedBy("fullName")} onChange={() => clearFieldError("fullName")} />{errorMessage("fullName")}</label>
+          <label className={labelClass} htmlFor={fieldId("phone")}><RequiredLabel>Phone</RequiredLabel><input id={fieldId("phone")} name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="+91 98765 43210" className={`${controlClass} ${errors.phone ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.phone)} aria-describedby={describedBy("phone")} onChange={() => clearFieldError("phone")} />{errorMessage("phone")}</label>
         </div>
 
-        <label className={labelClass} htmlFor="quote-email"><RequiredLabel>Email</RequiredLabel><input id="quote-email" name="email" type="email" inputMode="email" autoComplete="email" required maxLength={254} className={`${controlClass} ${errors.email ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.email)} aria-describedby={describedBy("email")} onChange={() => clearFieldError("email")} />{errorMessage("email")}</label>
+        <label className={labelClass} htmlFor={fieldId("email")}><RequiredLabel>Email</RequiredLabel><input id={fieldId("email")} name="email" type="email" inputMode="email" autoComplete="email" required maxLength={254} className={`${controlClass} ${errors.email ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.email)} aria-describedby={describedBy("email")} onChange={() => clearFieldError("email")} />{errorMessage("email")}</label>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <label className={labelClass} htmlFor="quote-state"><RequiredLabel>State</RequiredLabel><select id="quote-state" name="state" defaultValue={prefill?.state ?? ""} required className={`${controlClass} ${errors.state ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.state)} aria-describedby={describedBy("state")} onChange={() => clearFieldError("state")}><option value="" disabled>Select state</option>{states.map((state) => <option key={state} value={state}>{state}</option>)}</select>{errorMessage("state")}</label>
-          <label className={labelClass} htmlFor="quote-city"><RequiredLabel>City / Project Location</RequiredLabel><input id="quote-city" name="city" autoComplete="address-level2" required maxLength={120} defaultValue={prefill?.city ?? ""} className={`${controlClass} ${errors.city ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.city)} aria-describedby={describedBy("city")} onChange={() => clearFieldError("city")} />{errorMessage("city")}</label>
+          <label className={labelClass} htmlFor={fieldId("state")}><RequiredLabel>State</RequiredLabel><select id={fieldId("state")} name="state" defaultValue={prefill?.state ?? ""} required className={`${controlClass} ${errors.state ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.state)} aria-describedby={describedBy("state")} onChange={() => clearFieldError("state")}><option value="" disabled>Select state</option>{states.map((state) => <option key={state} value={state}>{state}</option>)}</select>{errorMessage("state")}</label>
+          <label className={labelClass} htmlFor={fieldId("city")}><RequiredLabel>City / Project Location</RequiredLabel><input id={fieldId("city")} name="city" autoComplete="address-level2" required maxLength={120} defaultValue={prefill?.city ?? ""} className={`${controlClass} ${errors.city ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.city)} aria-describedby={describedBy("city")} onChange={() => clearFieldError("city")} />{errorMessage("city")}</label>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <label className={labelClass} htmlFor="quote-projectType"><RequiredLabel>Project Type</RequiredLabel><select id="quote-projectType" name="projectType" defaultValue="" required className={`${controlClass} ${errors.projectType ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.projectType)} aria-describedby={describedBy("projectType")} onChange={() => clearFieldError("projectType")}><option value="" disabled>Select project type</option>{projectTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errorMessage("projectType")}</label>
-          <label className={labelClass} htmlFor="quote-productType"><RequiredLabel>Product Type</RequiredLabel><select id="quote-productType" name="productType" defaultValue={prefill?.productType ?? ""} required className={`${controlClass} ${errors.productType ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.productType)} aria-describedby={describedBy("productType")} onChange={() => clearFieldError("productType")}><option value="" disabled>Select product</option>{productTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errorMessage("productType")}</label>
+          <label className={labelClass} htmlFor={fieldId("projectType")}><RequiredLabel>Project Type</RequiredLabel><select id={fieldId("projectType")} name="projectType" defaultValue="" required className={`${controlClass} ${errors.projectType ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.projectType)} aria-describedby={describedBy("projectType")} onChange={() => clearFieldError("projectType")}><option value="" disabled>Select project type</option>{projectTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errorMessage("projectType")}</label>
+          <label className={labelClass} htmlFor={fieldId("productType")}><RequiredLabel>Product Type</RequiredLabel><select id={fieldId("productType")} name="productType" defaultValue={prefill?.productType ?? ""} required className={`${controlClass} ${errors.productType ? "border-brand-red" : "border-ink-900/12"}`} aria-invalid={Boolean(errors.productType)} aria-describedby={describedBy("productType")} onChange={() => clearFieldError("productType")}><option value="" disabled>Select product</option>{productTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select>{errorMessage("productType")}</label>
         </div>
 
-        <label className={labelClass} htmlFor="quote-requirement">Requirement <span className="font-normal text-steel-700">(optional)</span><textarea id="quote-requirement" name="requirement" maxLength={1000} defaultValue={prefill?.requirement ?? ""} className={`focus-ring min-h-32 w-full min-w-0 max-w-full rounded-[6px] border bg-[#f8f9fb] px-4 py-3 text-base font-normal outline-none transition focus:border-brand-blue ${errors.requirement ? "border-brand-red" : "border-ink-900/12"}`} placeholder="Share size, quantity, delivery location, project stage, or other details." aria-invalid={Boolean(errors.requirement)} aria-describedby={describedBy("requirement")} onChange={() => clearFieldError("requirement")} />{errorMessage("requirement")}</label>
+        <label className={labelClass} htmlFor={fieldId("requirement")}>Requirement <span className="font-normal text-steel-700">(optional)</span><textarea id={fieldId("requirement")} name="requirement" maxLength={1000} defaultValue={prefill?.requirement ?? ""} className={`focus-ring min-h-32 w-full min-w-0 max-w-full rounded-[6px] border bg-[#f8f9fb] px-4 py-3 text-base font-normal outline-none transition focus:border-brand-blue ${errors.requirement ? "border-brand-red" : "border-ink-900/12"}`} placeholder="Share size, quantity, delivery location, project stage, or other details." aria-invalid={Boolean(errors.requirement)} aria-describedby={describedBy("requirement")} onChange={() => clearFieldError("requirement")} />{errorMessage("requirement")}</label>
 
         <p className="text-sm leading-6 text-steel-700">By submitting this form, you agree to be contacted by ARS Green Steel regarding your quote request. View our <Link href="/privacy-policy" className="focus-ring font-bold text-brand-blue underline decoration-brand-blue/30 underline-offset-4 hover:text-brand-red">Privacy Policy</Link>.</p>
         <button type="submit" disabled={isSubmitting} className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] bg-brand-red px-6 py-3 text-sm font-bold text-white transition hover:bg-[#c90f16] disabled:cursor-wait disabled:opacity-65">{isSubmitting ? "Submitting…" : "Send Quote Request"} {!isSubmitting && <ArrowRight size={16} aria-hidden="true" />}</button>

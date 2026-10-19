@@ -1,11 +1,23 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BadgeCheck, Calculator, Check, ChevronDown, House, MapPin, Menu, Search, ShieldCheck, X } from "lucide-react";
 import { BreadcrumbBar } from "@/components/breadcrumbs";
+
+const HeaderQuoteRequestForm = dynamic(
+  () => import("@/components/quote-request-form").then((module) => module.QuoteRequestForm),
+  {
+    loading: () => (
+      <div className="grid min-h-72 place-items-center p-8 text-center">
+        <p className="text-sm font-semibold text-steel-700" role="status">Loading quote form…</p>
+      </div>
+    ),
+  },
+);
 
 type MenuLink = {
   label: string;
@@ -197,10 +209,23 @@ export function SiteHeader({ showBreadcrumb = true }: { showBreadcrumb?: boolean
   const links = routeLinks;
   const mobileMenuId = "site-mobile-navigation";
   const headerRef = useRef<HTMLElement>(null);
+  const quoteDialogRef = useRef<HTMLDialogElement>(null);
+  const quoteTriggerRef = useRef<HTMLButtonElement>(null);
   const triggerRefs = useRef<Partial<Record<keyof typeof megaMenus, HTMLButtonElement | null>>>({});
   const [openMenu, setOpenMenu] = useState<keyof typeof megaMenus | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSection, setMobileSection] = useState<keyof typeof megaMenus | null>(null);
+  const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const dialog = quoteDialogRef.current;
+    if (quoteDialogOpen && dialog && !dialog.open) dialog.showModal();
+  }, [quoteDialogOpen]);
+
+  function closeQuoteDialog() {
+    setQuoteDialogOpen(false);
+    requestAnimationFrame(() => quoteTriggerRef.current?.focus());
+  }
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -345,9 +370,21 @@ export function SiteHeader({ showBreadcrumb = true }: { showBreadcrumb?: boolean
           >
             <MapPin size={16} /> Find Dealer
           </Link>
-          <Link className="focus-ring inline-flex h-11 cursor-pointer items-center gap-2 rounded-full border border-ink-900/12 bg-white/60 px-5 text-sm font-bold text-ink-900 transition hover:border-brand-blue hover:text-brand-blue" href="/request-quote">
+          <button
+            ref={quoteTriggerRef}
+            type="button"
+            className="focus-ring inline-flex h-11 cursor-pointer items-center gap-2 rounded-full border border-ink-900/12 bg-white/60 px-5 text-sm font-bold text-ink-900 transition hover:border-brand-blue hover:text-brand-blue"
+            aria-haspopup="dialog"
+            aria-expanded={quoteDialogOpen}
+            aria-controls="header-quote-dialog"
+            onClick={() => {
+              setOpenMenu(null);
+              setMobileOpen(false);
+              setQuoteDialogOpen(true);
+            }}
+          >
             Get quote <ArrowRight size={16} />
-          </Link>
+          </button>
           <div className="relative z-[110] xl:hidden">
             <button
               type="button"
@@ -448,6 +485,65 @@ export function SiteHeader({ showBreadcrumb = true }: { showBreadcrumb?: boolean
     {showBreadcrumb ? <div className="relative z-40 h-0">
       <BreadcrumbBar pathname={pathname} />
     </div> : null}
+    {quoteDialogOpen ? (
+      <dialog
+        ref={quoteDialogRef}
+        id="header-quote-dialog"
+        className="m-auto h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-[780px] overflow-hidden rounded-[20px] border border-white/70 bg-white p-0 shadow-[0_30px_100px_rgba(6,13,30,0.35)] backdrop:bg-ink-950/80 backdrop:backdrop-blur-sm sm:h-[calc(100dvh-2rem)] sm:max-h-[820px] sm:w-[calc(100%-2rem)]"
+        aria-labelledby="header-quote-dialog-title"
+        aria-describedby="header-quote-dialog-description"
+        onCancel={(event) => {
+          event.preventDefault();
+          closeQuoteDialog();
+        }}
+        onClose={closeQuoteDialog}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) closeQuoteDialog();
+        }}
+      >
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="shrink-0 border-b border-ink-900/10 bg-white px-5 py-5 sm:px-8 sm:py-7">
+            <div className="flex items-start justify-between gap-4 sm:gap-6">
+              <div className="max-w-[620px]">
+                <h2 id="header-quote-dialog-title" className="font-display text-[clamp(1.5rem,4vw,2rem)] font-bold leading-tight text-ink-900">Request an ARS Steel Quote</h2>
+                <p id="header-quote-dialog-description" className="mt-2 max-w-[58ch] text-sm leading-6 text-steel-700 sm:text-base">
+                  Share your project and product details so the ARS sales team can respond with clearer pricing and availability.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeQuoteDialog}
+                className="focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-ink-900/10 bg-surface-50 text-ink-900 transition hover:border-brand-blue hover:bg-white hover:text-brand-blue"
+                aria-label="Close quote form"
+              >
+                <X size={20} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white px-5 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
+            <HeaderQuoteRequestForm
+              idPrefix="header-quote"
+              presentation="plain"
+              title="Request an ARS Steel Quote"
+              body="Share your project and product details so the ARS sales team can respond with clearer pricing and availability."
+            />
+            {pathname !== "/request-quote" ? (
+              <p className="border-t border-ink-900/10 pt-5 text-center text-sm leading-6 text-steel-700">
+                Prefer more space?{" "}
+                <Link
+                  href="/request-quote"
+                  prefetch={false}
+                  onClick={closeQuoteDialog}
+                  className="focus-ring font-bold text-brand-blue underline decoration-brand-blue/30 underline-offset-4 hover:text-brand-red"
+                >
+                  Open the full Request Quote page
+                </Link>
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </dialog>
+    ) : null}
     </>
   );
 }

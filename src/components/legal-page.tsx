@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 
 export type LegalSection = {
   title: string;
-  body: string;
+  body: string | readonly string[];
 };
 
 type LegalPageProps = {
@@ -65,13 +65,21 @@ export function LegalPage({ label, title, intro, sections, note, relatedHref, re
               ARS Green Steel website policy
             </div>
             <div className="divide-y divide-ink-900/10">
-              {sections.map((section, index) => (
-                <section key={section.title} id={sectionId(section.title)} className="scroll-mt-28 py-9 first:pt-8 last:pb-4">
-                  <p className="font-technical text-xs font-bold uppercase tracking-[0.2em] text-brand-red">Section {String(index + 1).padStart(2, "0")}</p>
-                  <h2 className="mt-3 font-display text-2xl font-bold leading-tight text-ink-900 md:text-3xl">{section.title}</h2>
-                  <p className="mt-5 text-base leading-8 text-steel-700">{section.body}</p>
-                </section>
-              ))}
+              {sections.map((section, index) => {
+                const paragraphs = typeof section.body === "string" ? [section.body] : section.body;
+
+                return (
+                  <section key={section.title} id={sectionId(section.title)} className="scroll-mt-28 py-9 first:pt-8 last:pb-4">
+                    <p className="font-technical text-xs font-bold uppercase tracking-[0.2em] text-brand-red">Section {String(index + 1).padStart(2, "0")}</p>
+                    <h2 className="mt-3 font-display text-2xl font-bold leading-tight text-ink-900 md:text-3xl">{section.title}</h2>
+                    <div className="mt-5 space-y-5 text-base leading-8 text-steel-700">
+                      {paragraphs.map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
 
             <div className="mt-10 border-l-2 border-brand-blue bg-surface-50 p-6 md:p-8">
