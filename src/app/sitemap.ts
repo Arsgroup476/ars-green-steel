@@ -72,9 +72,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       seen.add(normalized);
       return true;
     })
-    .map((route) => ({
-      url: `${productionDomain}${route === "/" ? "" : route}`,
-      changeFrequency: route.includes("/blog/") ? "monthly" : "weekly",
-      priority: route === "/" ? 1 : route.includes("/blog/") ? 0.55 : 0.75,
-    }));
+    .map((route) => {
+      const publishedAt = editorialBlogPosts.find((post) => route === `/blog/${post.slug}`)?.publishedAt;
+      return {
+        url: `${productionDomain}${route === "/" ? "" : route}`,
+        changeFrequency: route.includes("/blog/") ? "monthly" as const : "weekly" as const,
+        priority: route === "/" ? 1 : route.includes("/blog/") ? 0.55 : 0.75,
+        ...(publishedAt ? { lastModified: publishedAt } : {}),
+      };
+    });
 }

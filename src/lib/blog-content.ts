@@ -215,8 +215,15 @@ export function getBlogArchiveArticles(): BlogArchiveArticle[] {
     title: post.title,
     excerpt: post.metaDescription,
     category: post.category,
-    dateLabel: null,
-    dateValue: 0,
+    dateLabel: post.publishedAt
+      ? new Date(`${post.publishedAt}T00:00:00Z`).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "UTC",
+        })
+      : null,
+    dateValue: post.publishedAt ? Date.parse(`${post.publishedAt}T00:00:00Z`) : 0,
     readTime: post.readTime,
     image: post.image,
     imageAlt: post.imageAlt,

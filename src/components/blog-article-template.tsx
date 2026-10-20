@@ -275,6 +275,9 @@ export function BlogArticleTemplate({
         ? articleHeadings.filter((heading) => editorialPost.guideHeadingIds?.includes(heading.id))
         : articleHeadings.filter((heading) => /^(?:[1-9]|10)\.\s/.test(heading.title)).slice(0, 10)
       : articleHeadings.slice(0, 10);
+  const navigationTitle = (title: string) => editorialPost?.publishedAt
+    ? title.replace(/^\d+[.\s]+/, "")
+    : title;
   const hasArticleNavigation = visibleArticleHeadings.length > 0;
 
   const articleUrl = `${productionDomain}/blog/${article.slug}`;
@@ -298,8 +301,9 @@ export function BlogArticleTemplate({
       "@id": articleUrl,
     },
     url: articleUrl,
-    datePublished: registryEntry?.publishDate?.slice(0, 10) || article.dateLabel || undefined,
+    datePublished: editorialPost?.publishedAt || registryEntry?.publishDate?.slice(0, 10) || article.dateLabel || undefined,
     dateModified:
+      editorialPost?.publishedAt ||
       registryEntry?.modifiedDate?.slice(0, 10) ||
       registryEntry?.publishDate?.slice(0, 10) ||
       article.dateLabel ||
@@ -343,7 +347,10 @@ export function BlogArticleTemplate({
           className="object-cover opacity-85"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,13,30,0.66)_0%,rgba(6,13,30,0.48)_48%,rgba(6,13,30,0.18)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(6,13,30,0.38),transparent_58%)]" />
+        <div className={editorialPost?.publishedAt
+          ? "absolute inset-0 bg-[linear-gradient(0deg,rgba(6,13,30,0.8),transparent_65%)]"
+          : "absolute inset-0 bg-[linear-gradient(0deg,rgba(6,13,30,0.38),transparent_58%)]"
+        } />
 
         <div className="ars-page-hero-content h-full ars-container relative z-10 flex items-end pb-12 pt-32 lg:pb-16">
           <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(280px,0.32fr)] lg:items-end">
@@ -408,7 +415,7 @@ export function BlogArticleTemplate({
                       <span className="mt-0.5 shrink-0 whitespace-nowrap font-technical text-[0.65rem] font-bold tracking-[0.12em] text-brand-red/70 transition group-hover:text-brand-red">
                         {String(index + 1).padStart(2, "0")}
                       </span>
-                      <span className="line-clamp-2">{section.title}</span>
+                      <span className="line-clamp-2">{navigationTitle(section.title)}</span>
                     </a>
                   </li>
                 ))}
@@ -431,7 +438,7 @@ export function BlogArticleTemplate({
                     <li key={section.id}>
                       <a href={`#${section.id}`} className="focus-ring flex min-h-11 items-start gap-3 py-2 text-sm font-semibold leading-5 text-steel-700 transition hover:text-brand-blue">
                         <span className="shrink-0 whitespace-nowrap font-technical text-[0.65rem] font-bold tracking-[0.12em] text-brand-red/70">{String(index + 1).padStart(2, "0")}</span>
-                        <span>{section.title}</span>
+                        <span>{navigationTitle(section.title)}</span>
                       </a>
                     </li>
                   ))}
@@ -543,10 +550,13 @@ function ArticleMeta({
   return (
     <div className={`flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium ${textColor}`}>
       {article.dateLabel ? (
-        <span className="inline-flex items-center gap-1.5">
+        <time
+          dateTime={article.dateValue ? new Date(article.dateValue).toISOString().slice(0, 10) : undefined}
+          className="inline-flex items-center gap-1.5"
+        >
           <CalendarDays size={14} aria-hidden="true" />
           {article.dateLabel}
-        </span>
+        </time>
       ) : null}
       <span className="inline-flex items-center gap-1.5">
         <BookOpen size={14} aria-hidden="true" />

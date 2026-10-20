@@ -33,6 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description: editorialPost.ogDescription,
         url: finalUrl,
         type: "article",
+        publishedTime: editorialPost.publishedAt,
         images: [{ url: toProductionAssetUrl(editorialPost.image), alt: editorialPost.imageAlt }],
       },
       twitter: {

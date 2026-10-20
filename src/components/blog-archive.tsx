@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import {
   blogCategories,
   type BlogArchiveArticle,
-  type BlogCategory,
 } from "@/lib/blog-content";
 
 const INITIAL_ARTICLE_COUNT = 12;
@@ -204,7 +203,7 @@ function ArticleCard({ article }: { article: BlogArchiveArticle }) {
 
       <div className="flex flex-1 flex-col p-5 lg:p-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-grey-600">
-          {article.dateLabel ? <time>{article.dateLabel}</time> : null}
+          {article.dateLabel ? <time dateTime={article.dateValue ? new Date(article.dateValue).toISOString().slice(0, 10) : undefined}>{article.dateLabel}</time> : null}
           {article.dateLabel ? <span aria-hidden="true">•</span> : null}
           <span>{article.readTime}</span>
         </div>
